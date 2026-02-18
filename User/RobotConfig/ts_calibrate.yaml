@@ -1,0 +1,57 @@
+global_settings:
+  monitor_sleep_ms: 1000
+modules:
+- id: blink_led
+  name: BlinkLED
+  constructor_args:
+    blink_cycle: 500
+
+- id: bmi088
+  name: BMI088
+  constructor_args:
+    gyro_freq: BMI088::GyroFreq::GYRO_2000HZ_BW532HZ
+    accl_freq: BMI088::AcclFreq::ACCL_1600HZ
+    gyro_range: BMI088::GyroRange::DEG_2000DPS
+    accl_range: BMI088::AcclRange::ACCL_24G
+    rotation: {w: 1.0, x: 0.0, y: 0.0, z: 0.0}
+    pid_param: {k: 1.0, p: 0.0, i: 0.0, d: 0.0, i_limit: 0.0, out_limit: 0.0, cycle: false}
+    gyro_topic_name: "bmi088_gyro"
+    accl_topic_name: "bmi088_accl"
+    target_temperature: 45
+    task_stack_depth: 2048
+
+- id: madgwick_ahrs
+  name: MadgwickAHRS
+  constructor_args:
+    beta: 0.05
+    gyro_topic_name: "bmi088_gyro"
+    accl_topic_name: "bmi088_accl"
+    quaternion_topic_name: "ahrs_quaternion"
+    euler_topic_name: "ahrs_euler"
+    task_stack_depth: 2048
+
+- id: shared_topic_rx
+  name: SharedTopic
+  constructor_args:
+    uart_name: "usb_ai"
+    task_stack_depth: 2048
+    buffer_size: 256
+    topic_configs:
+      - "ts_ping"
+
+- id: shared_topic_tx
+  name: SharedTopicClient
+  constructor_args:
+    uart_name: "usb_ai"
+    task_stack_depth: 2048
+    buffer_size: 256
+    topic_configs:
+      - "ts_pong"
+      - "ahrs_stamped"
+      - "ahrs_quaternion"
+
+- id: ts_probe
+  name: TimestampProbe
+  constructor_args:
+    quaternion_topic_name: "ahrs_quaternion"
+    task_stack_depth: 2048
